@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
@@ -14,7 +13,8 @@ namespace QuickViewer
 	public partial class QuickViewer : Form
 	{
 		private readonly Model _model = new Model();
-		private List<dynamic> _data;
+		private List<Member> _data;
+		private object _currentCellValue;
 
 		public QuickViewer()
 		{
@@ -41,6 +41,7 @@ namespace QuickViewer
 
 		private void btnRefresh_Click(object sender, EventArgs e)
 		{
+			this.cmbBoxMember.DataSource = GetBeamNames();
 			var beams = GetBeams();
 			GetData(beams);
 			this.txtBoxSearch.Text = string.Empty;
@@ -84,11 +85,11 @@ namespace QuickViewer
 					var assemblyPos = string.Empty;
 					b.GetReportProperty("ASSEMBLY_POS", ref assemblyPos);
 
-					return new
+					return new Member
 					{
 						Id = b.Identifier.ID,
 						Phase = phase,
-						Assembly_Mark = assemblyPos,
+						AssemblyMark = assemblyPos,
 						Name = b.Name,
 						Profile = b.Profile.ProfileString,
 						Class = b.Class,
@@ -99,7 +100,7 @@ namespace QuickViewer
 				.OrderBy(b => b.Phase)
 				.ThenBy(b => b.Name)
 				.ThenBy(b => b.Profile)
-				.ToList<dynamic>();
+				.ToList();
 		}
 
 		private List<Beam> GetBeams()
@@ -175,6 +176,99 @@ namespace QuickViewer
 		private void logo_Click(object sender, EventArgs e)
 		{
 			Process.Start("http://razorcx.com");
+		}
+
+		private void dataGridMembers_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			var dataGridView = sender as DataGridView;
+			if (dataGridView == null) return;
+
+			try
+			{
+				var row = dataGridView?.CurrentRow;
+				if (row == null) return;
+
+				var cell = dataGridView.CurrentCell.Value;
+				var cellValue = cell?.ToString() ?? string.Empty;
+				var columnName = dataGridView.Columns[dataGridView.CurrentCell.ColumnIndex].Name.ToUpper();
+				var id = (int) ((dynamic) row.DataBoundItem).Id;
+
+				var part = _model.SelectModelObject(new Identifier(id)) as Part;
+				if (part == null) return;
+
+				var commitChanges = false;
+
+				switch (columnName)
+				{
+					case "NAME":
+						part.Name = cellValue;
+						break;
+					case "PROFILE":
+						if (!string.IsNullOrEmpty(cellValue))
+						{
+							part.Profile = new Profile() {ProfileString = cellValue};
+							commitChanges = true;
+						}
+						break;
+					case "CLASS":
+						if (int.Parse(cellValue) > 0 && int.Parse(cellValue) < 100)
+						{
+							part.Class = cellValue;
+							commitChanges = true;
+						}
+						break;
+					case "FINISH":
+						part.Finish = cellValue;
+						break;
+					case "MATERIAL":
+						if (!string.IsNullOrEmpty(cellValue))
+						{
+							part.Material = new Material() {MaterialString = cellValue};
+							commitChanges = true;
+						}
+						break;
+				}
+
+				if (columnName == "MATERIAL" && string.IsNullOrEmpty(cellValue))
+				{
+					dataGridView.CurrentCell.Value = _currentCellValue;
+					return;
+				}
+
+				if (columnName == "PROFILE" && string.IsNullOrEmpty(cellValue))
+				{
+					dataGridView.CurrentCell.Value = _currentCellValue;
+					return;
+				}
+
+				if (columnName == "CLASS" && !(int.Parse(cellValue) > 0 && int.Parse(cellValue) < 100))
+				{
+					dataGridView.CurrentCell.Value = _currentCellValue;
+					return;
+				}
+
+				var success = part.Modify();
+				if (!success)
+				{
+					dataGridView.CurrentCell.Value = _currentCellValue;
+					return;
+				}
+
+				if (commitChanges)
+					_model.CommitChanges();
+
+				_currentCellValue = null;
+			}
+			catch (Exception ex)
+			{
+				dataGridView.CurrentCell.Value = _currentCellValue;
+			}
+		}
+
+		private void dataGridMembers_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+		{
+			var dataGridView = sender as DataGridView;
+			_currentCellValue = dataGridView?.CurrentCell.Value;
 		}
 	}
 }

@@ -40,6 +40,7 @@
 			this.txtBoxModelInfo = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
+			this.tree1 = new Tekla.Structures.Dialog.UIControls.Tree();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridMembers)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.logo)).BeginInit();
 			this.SuspendLayout();
@@ -53,12 +54,13 @@
 			this.dataGridMembers.BackgroundColor = System.Drawing.Color.White;
 			this.dataGridMembers.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridMembers.GridColor = System.Drawing.SystemColors.ControlLight;
-			this.dataGridMembers.Location = new System.Drawing.Point(12, 150);
+			this.dataGridMembers.Location = new System.Drawing.Point(12, 152);
 			this.dataGridMembers.Name = "dataGridMembers";
-			this.dataGridMembers.ReadOnly = true;
 			this.dataGridMembers.RowTemplate.Height = 24;
-			this.dataGridMembers.Size = new System.Drawing.Size(750, 429);
+			this.dataGridMembers.Size = new System.Drawing.Size(750, 427);
 			this.dataGridMembers.TabIndex = 1;
+			this.dataGridMembers.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridMembers_CellBeginEdit);
+			this.dataGridMembers.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridMembers_CellValueChanged);
 			this.dataGridMembers.SelectionChanged += new System.EventHandler(this.dataGridMembers_SelectionChanged);
 			// 
 			// labelDataGrid
@@ -150,11 +152,20 @@
 			this.label2.TabIndex = 11;
 			this.label2.Text = "Model Name";
 			// 
+			// tree1
+			// 
+			this.tree1.BackColor = System.Drawing.Color.White;
+			this.tree1.Location = new System.Drawing.Point(496, 379);
+			this.tree1.Name = "tree1";
+			this.tree1.Size = new System.Drawing.Size(8, 8);
+			this.tree1.TabIndex = 12;
+			// 
 			// QuickViewer
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(774, 622);
+			this.Controls.Add(this.tree1);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.txtBoxModelInfo);
@@ -188,6 +199,7 @@
 		private System.Windows.Forms.TextBox txtBoxModelInfo;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
+		private Tekla.Structures.Dialog.UIControls.Tree tree1;
 	}
 }
 
